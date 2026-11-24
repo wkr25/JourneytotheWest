@@ -1,4 +1,4 @@
-﻿import { createWorkspaceApi } from './workspace-api.js';
+import { createWorkspaceApi } from './workspace-api.js';
 
 const config = window.HANDBOOK_CONFIG;
 const api = config?.url && config.publicKey
@@ -46,16 +46,15 @@ function toast(text) {
 function visibility() {
   const signedIn = Boolean(member);
   document.querySelectorAll('[data-members-only]').forEach(el => { el.hidden = !signedIn; });
-  document.querySelectorAll('nav a').forEach(el => {
-    el.hidden = document.querySelector(el.hash)?.hidden ?? false;
-  });
+  document.querySelectorAll('[data-public-preview]').forEach(el => { el.hidden = signedIn; });
+  $('boardNav').hidden = !signedIn;
   $('loginButton').hidden = signedIn || !api;
   $('logoutButton').hidden = !signedIn && !api?.hasSession();
   $('passwordButton').hidden = !signedIn;
   $('refreshButton').hidden = !signedIn;
   if (!signedIn) status.textContent = api
-    ? '队员登录后可查看和更新共享手册。'
-    : '协作服务待开通。当前可查看实践介绍。';
+    ? '队员登录后可查看和更新队内记录。'
+    : '当前可在线阅读手册。队内登录和协作待开通。';
 }
 
 function readableTime(value) {

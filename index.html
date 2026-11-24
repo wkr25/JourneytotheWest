@@ -18,7 +18,7 @@
       <nav class="main-nav" aria-label="章节导航">
         <a href="#overview">速览</a><a href="#theme">主题</a><a href="#route">路线</a>
         <a href="#points">点位</a><a href="#team">队伍</a><a href="#outputs">成果</a>
-        <a href="#sources">资料</a><a href="#board">留言</a>
+        <a href="#sources">资料</a><a href="#board" id="boardNav" hidden>留言</a>
       </nav>
       <div class="toolbar">
         <button class="button ghost" type="button" id="loginButton" hidden>队员登录</button>
@@ -38,7 +38,7 @@
           <h1>有点意西</h1>
           <p class="hero-lead">去意西寻找乡村振兴。</p>
           <p class="hero-note">从欧洲乡村发展的多轮探索出发，调研产业链与问题解决方案，连接国内乡村振兴工作站，也把中国乡村振兴的真实故事带到欧洲。</p>
-          <div class="hero-actions"><a class="button primary" href="#theme">进入实践框架</a><a class="text-link" href="#team" data-members-only hidden>查看队伍 →</a></div>
+          <div class="hero-actions"><a class="button primary" href="#theme">进入实践框架</a><a class="text-link" href="#team">查看队伍 →</a></div>
         </div>
         <div class="hero-orbit" aria-hidden="true">
           <div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div>
@@ -69,32 +69,52 @@
         <div class="question-box"><span class="label">正在追问</span><p>欧洲乡村产业链如何发展与融合？方案是否真正解决了乡村问题？收益是否惠及当地居民？中国乡村振兴的经验又如何被欧洲公众理解？</p></div>
       </section>
 
-      <section class="section" id="route" data-members-only hidden>
+      <section class="section" id="route">
         <div class="section-heading"><span class="chapter">03</span><div><p class="eyebrow">ROUTE & SCHEDULE</p><h2>路线与安排</h2></div></div>
         <div class="route-track"><div class="route-stop active"><span class="route-dot"></span><div><b>中国</b><small>出发 · 日期暂定</small></div></div><div class="route-line"></div><div class="route-stop active"><span class="route-dot"></span><div><b>米兰</b><small>意大利 · 必去</small></div></div><div class="route-line dashed"></div><div class="route-stop pending"><span class="route-dot"></span><div><b>意大利另一座城市</b><small>待确定</small></div></div><div class="route-line"></div><div class="route-stop active"><span class="route-dot"></span><div><b>巴塞罗那</b><small>西班牙 · 必去</small></div></div></div>
         <p class="route-summary">意大利段约 7 天，先赴米兰及另一座待定城市，再前往西班牙巴塞罗那。具体日期、城市活动与点位根据外联进展更新。</p>
-        <div class="table-wrap"><table class="editable-table"><thead><tr><th>日期</th><th>城市 / 地区</th><th>拟开展活动</th><th>负责小组</th><th>确认状态</th><th>下一步</th></tr></thead><tbody id="scheduleRows"></tbody></table></div>
-        <button class="button primary chapter-action" type="button" data-add="route">新增行程</button>
+        <div data-members-only hidden>
+          <div class="table-wrap"><table class="editable-table"><thead><tr><th>日期</th><th>城市 / 地区</th><th>拟开展活动</th><th>负责小组</th><th>确认状态</th><th>下一步</th></tr></thead><tbody id="scheduleRows"></tbody></table></div>
+          <button class="button primary chapter-action" type="button" data-add="route">新增行程</button>
+        </div>
       </section>
 
-      <section class="section" id="points" data-members-only hidden>
+      <section class="section" id="points">
         <div class="section-heading"><span class="chapter">04</span><div><p class="eyebrow">FIELD POINTS</p><h2>调研点位</h2></div></div>
         <p class="section-lead">本章只记录具体访问对象。研究主题写在第二章，点位随着调研与外联推进持续补充。每个点位都保留状态、联系方式、外联进展和调研材料入口。</p>
-        <div class="point-grid" id="pointGrid"></div>
-        <button class="button primary chapter-action" type="button" data-add="point">新增点位</button>
+        <div class="point-grid" data-public-preview>
+          <article class="point-card">
+            <div class="point-top"><h3>清华大学米兰基地</h3><span class="status">待确定</span></div>
+            <p class="point-desc">意大利米兰。拟了解基地可协助对接的机构、乡村发展资源与交流安排。</p>
+          </article>
+          <article class="point-card">
+            <div class="point-top"><h3>粮农组织相关机构或展厅</h3><span class="status">待确定</span></div>
+            <p class="point-desc">地点待确定。优先争取座谈，了解乡村产业、产品销路及国际贸易。也可考虑参观相关展厅。</p>
+          </article>
+        </div>
+        <div data-members-only hidden>
+          <div class="point-grid" id="pointGrid"></div>
+          <button class="button primary chapter-action" type="button" data-add="point">新增点位</button>
+        </div>
       </section>
 
-      <section class="section" id="team" data-members-only hidden>
+      <section class="section" id="team">
         <div class="section-heading"><span class="chapter">05</span><div><p class="eyebrow">TEAM & TASKS</p><h2>队伍执行</h2></div></div>
         <p class="section-lead">Web 版以人为单位同步当前任务、进度和文件。支队统筹成员与四个工作组共同推进。</p>
         <div class="team-summary"><span><b>15</b> 名成员</span><span><b>4</b> 位支队统筹</span><span><b>4</b> 个工作组</span></div>
-        <div class="table-wrap"><table class="team-table"><thead><tr><th>成员</th><th>身份 / 所属组</th><th>当前任务</th><th>进度</th><th>文件</th></tr></thead><tbody id="teamRows"></tbody></table></div>
+        <p class="section-lead" data-public-preview>四个工作组为内联组、外联组、调研组和宣传组。成员名单、任务进度和工作文件在队内协作区查阅。</p>
+        <div class="table-wrap" data-members-only hidden><table class="team-table"><thead><tr><th>成员</th><th>身份 / 所属组</th><th>当前任务</th><th>进度</th><th>文件</th></tr></thead><tbody id="teamRows"></tbody></table></div>
       </section>
 
-      <section class="section outputs-section" id="outputs" data-members-only hidden>
+      <section class="section outputs-section" id="outputs">
         <div class="section-heading"><span class="chapter">06</span><div><p class="eyebrow">OUTPUTS & HANDOFF</p><h2>成果与后续衔接</h2></div></div>
         <p class="section-lead">成果记录既服务阶段协作，也记录交接与后续回访。Word 版以表格汇总，Web 版提供上传与更新入口。</p>
-        <div class="output-grid" id="outputGrid"></div>
+        <div class="output-grid" data-public-preview>
+          <article class="output-card"><div class="output-index">6.1</div><div><h3>意大利、西班牙乡村产业链整体调研报告</h3><p class="output-desc">梳理产业发展、三产融合、收益分配和乡村问题的应对办法，纳入分散式酒店和青年返乡创业等案例。</p></div></article>
+          <article class="output-card"><div class="output-index">6.2</div><div><h3>乡村振兴工作站点位专项方案手册</h3><p class="output-desc">结合不同工作站点位的实际需求形成行动方案，交接后跟踪实施和收益情况。</p></div></article>
+          <article class="output-card"><div class="output-index">6.3</div><div><h3>面向欧洲公众的乡村振兴成果展示与传播</h3><p class="output-desc">计划开展展览和路演，制作独立成果展示网站及图文，有条件时开发互动游戏。</p></div></article>
+        </div>
+        <div class="output-grid" id="outputGrid" data-members-only hidden></div>
       </section>
 
       <section class="section" id="sources">
