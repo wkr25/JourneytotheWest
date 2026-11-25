@@ -92,13 +92,23 @@ export function createWorkspaceApi(config) {
 
   return {
     hasSession: () => Boolean(session?.access_token),
-    async signIn(email, password) {
+    isCodeSession: () => session?.user?.is_anonymous === true,
+    async unlock(code) {
+      const normalized = code.trim().replace(/[\s-]/g, '').toUpperCase();
+      if (!/^[0-9A-F]{16}$/.test(normalized)) throw new Error('请检查访问码是否完整。');
       try {
-        saveSession(await request('/auth/v1/token?grant_type=password', {
-          method: 'POST', ...json({ email, password }),
-        }));
+        if (!session?.user?.is_anonymous) {
+          saveSession(await request('/auth/v1/signup', { method: 'POST', ...json({}) }));
+        }
+        const unlocked = await authenticated(rest + 'rpc/unlock_handbook', {
+          method: 'POST', ...json({ access_code: normalized }),
+        });
+        if (!unlocked) throw new Error('访问码不正确，请向支队长确认。');
       } catch (error) {
-        if ([400, 401].includes(error.status)) error.message = '登录失败，请检查邮箱和密码，并确认账号已开通。';
+        if (['anonymous_provider_disabled', 'signup_disabled', 'PGRST202'].includes(error.code)) {
+          error.message = '访问码功能尚未开通，请联系支队长。';
+        }
+        if (error.status === 429) error.message = '尝试次数过多，请稍等片刻再试。';
         throw error;
       }
     },
@@ -109,16 +119,21 @@ export function createWorkspaceApi(config) {
         saveSession(null);
       }
     },
-    changePassword: password => authenticated('/auth/v1/user', { method: 'PUT', ...json({ password }) }),
     async profile() {
       const profiles = await authenticated(rest + 'handbook_members?select=id,display_name&id=eq.' + session.user.id);
       return profiles[0] ?? null;
     },
     async load() {
+      const profiles = await authenticated(rest + 'handbook_members?select=id&id=eq.' + session.user.id);
+      if (!profiles.length) {
+        const error = new Error('访问已失效，请重新输入访问码。');
+        error.status = 403;
+        throw error;
+      }
       const [records, files, messages] = await Promise.all([
         readAll('handbook_records?select=*&order=created_at.asc,id.asc'),
         readAll('handbook_files?select=id,record_id,object_path,filename,size,created_at&order=created_at.desc,id.desc'),
-        readAll('handbook_messages?select=id,parent_id,content,created_at,handbook_members(display_name)&order=created_at.desc,id.desc'),
+        readAll('handbook_messages?select=id,parent_id,content,signed_name,created_at,handbook_members(display_name)&order=created_at.desc,id.desc'),
       ]);
       return { records, files, messages };
     },
@@ -129,8 +144,8 @@ export function createWorkspaceApi(config) {
       const rows = await authenticated(path, { ...options, method: record ? 'PATCH' : 'POST' });
       if (!rows.length) throw new Error('这条记录已被其他队员更新。请关闭表单、刷新后再修改。');
     },
-    addMessage: (content, parentId) => authenticated(rest + 'handbook_messages', {
-      method: 'POST', ...json({ content, parent_id: parentId }),
+    addMessage: (content, parentId, signature) => authenticated(rest + 'handbook_messages', {
+      method: 'POST', ...json({ content, parent_id: parentId, ...(session?.user?.is_anonymous && signature ? { signed_name: signature } : {}) }),
     }),
     async upload(recordId, file) {
       const path = session.user.id + '/' + recordId + '/' + crypto.randomUUID();

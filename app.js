@@ -1,4 +1,4 @@
-import { createWorkspaceApi } from './workspace-api.js';
+import { createWorkspaceApi } from './workspace-api.js?v=access-code';
 
 const config = window.HANDBOOK_CONFIG;
 const api = config?.url && config.publicKey
@@ -49,11 +49,11 @@ function visibility() {
   document.querySelectorAll('[data-public-preview]').forEach(el => { el.hidden = signedIn; });
   $('boardNav').hidden = !signedIn;
   $('loginButton').hidden = signedIn || !api;
-  $('logoutButton').hidden = !signedIn && !api?.hasSession();
-  $('passwordButton').hidden = !signedIn;
+  $('logoutButton').hidden = !signedIn;
+  $('messageSignature').hidden = !signedIn || !api.isCodeSession();
   $('refreshButton').hidden = !signedIn;
   if (!signedIn) status.textContent = api
-    ? '队员登录后可查看和更新队内记录。'
+    ? '公开手册可直接浏览。队员输入支队的访问码后可参与协作。'
     : '当前可在线阅读手册。队内登录和协作待开通。';
 }
 
@@ -122,7 +122,7 @@ function render() {
 function renderMessages() {
   const messages = workspace.messages;
   const ids = new Set(messages.map(m => m.id));
-  const displayName = message => message.handbook_members?.display_name || '队员';
+  const displayName = message => message.signed_name || message.handbook_members?.display_name || '队员';
   const renderMessage = (message, isReply = false) =>
     '<article class="message' + (isReply ? ' reply' : '') + '"><div class="message-head"><b>' +
     esc(displayName(message)) + '</b><span>' + esc(readableTime(message.created_at)) +
@@ -145,9 +145,9 @@ function sync({ automatic = false, again = false } = {}) {
     status.textContent = current.display_name + ' · 已连接 · ' + readableTime(Date.now());
   }).catch(error => {
     if (member !== current) return;
-    if (!api.hasSession()) {
+    if (!api.hasSession() || error.code === '42501' || error.status === 403) {
       clearWorkspace();
-      status.textContent = '登录已失效，请重新登录。';
+      status.textContent = '访问已失效，请重新输入访问码。';
     } else {
       status.textContent = current.display_name + ' · 同步失败，可手动刷新重试。';
     }
@@ -169,8 +169,7 @@ function clearWorkspace() {
 async function connect() {
   const profile = await api.profile();
   if (!profile) {
-    await api.signOut().catch(() => {});
-    throw new Error('此账号尚未加入支队，请联系支队统筹成员。');
+    throw new Error('访问已失效，请重新输入访问码。');
   }
   member = profile;
   visibility();
@@ -187,22 +186,18 @@ function renderField(f, value, required = false) {
     : '<input name="' + f.key + '" type="' + f.type + '"' +
        (f.type === 'checkbox' ? (value ? ' checked' : '') : ' maxlength="500" value="' + esc(value) + '"') +
        (required ? ' required' : '') +
-       (f.key === 'email' ? ' autocomplete="username"' : '') +
-       (f.type === 'password' ? ' autocomplete="' + (edit.kind === 'login' ? 'current-password' : 'new-password') + '"' : '') + '>';
+       (f.type === 'password' ? ' autocomplete="current-password" autocapitalize="none" spellcheck="false"' : '') + '>';
   return '<label' + (f.type === 'checkbox' ? ' class="checkbox-field">' + input + esc(f.label) : '>' + esc(f.label) + input) + '</label>';
 }
 
 function openEditor(kind, record, category) {
   edit = { kind, record, category };
-  const special = kind === 'login' || kind === 'password';
-  $('dialogTitle').textContent = special ? (kind === 'login' ? '队员登录' : '修改密码')
+  const signingIn = kind === 'login';
+  $('dialogTitle').textContent = signingIn ? '输入访问码'
     : (record ? '更新' : '新增') + names[kind];
-  $('dialogSubmit').textContent = kind === 'login' ? '登录' : '保存';
-  const fields = special ? [
-    ...(kind === 'login' ? [field('email', '队员邮箱', 'email')] : []),
-    field('password', kind === 'login' ? '密码' : '新密码（至少 12 位）', 'password'),
-  ] : forms[kind];
-  $('dialogFields').innerHTML = fields.map(f => renderField(f, record?.payload[f.key], special || f.key === 'name' ||
+  $('dialogSubmit').textContent = signingIn ? '进入协作' : '保存';
+  const fields = signingIn ? [field('code', '支队访问码', 'password')] : forms[kind];
+  $('dialogFields').innerHTML = fields.map(f => renderField(f, record?.payload[f.key], signingIn || f.key === 'name' ||
     (kind === 'route' && f.key === 'location'))).join('');
   $('dialogError').textContent = '';
   dialog.showModal();
@@ -237,12 +232,8 @@ $('workspaceForm').addEventListener('submit', async event => {
   try {
     const { kind, record, category } = active;
     if (kind === 'login') {
-      await api.signIn(data.get('email').trim(), data.get('password'));
+      await api.unlock(data.get('code'));
       await connect();
-    } else if (kind === 'password') {
-      if (data.get('password').length < 12) throw new Error('新密码至少需要 12 位。');
-      await api.changePassword(data.get('password'));
-      toast('密码已更新。');
     } else {
       const payload = { ...record?.payload };
       if (category) payload.category = category;
@@ -268,7 +259,6 @@ for (const id of ['closeDialog', 'cancelDialog']) $(id).addEventListener('click'
 dialog.addEventListener('cancel', event => { if ($('dialogSubmit').disabled) event.preventDefault(); });
 dialog.addEventListener('close', () => { $('dialogFields').replaceChildren(); });
 $('loginButton').addEventListener('click', () => openEditor('login'));
-$('passwordButton').addEventListener('click', () => openEditor('password'));
 $('refreshButton').addEventListener('click', () => sync());
 $('logoutButton').addEventListener('click', event => run(event.currentTarget, async () => {
   try { await api.signOut(); } finally { clearWorkspace(); }
@@ -299,7 +289,7 @@ document.addEventListener('click', event => {
     const message = workspace.messages.find(m => m.id === reply);
     if (!message) return;
     replyTo = reply;
-    $('replyHeading').textContent = '回复 ' + (message.handbook_members?.display_name || '队员');
+    $('replyHeading').textContent = '回复 ' + (message.signed_name || message.handbook_members?.display_name || '队员');
     $('replyHeading').hidden = false;
     $('cancelReply').hidden = false;
     $('boardForm').elements.content.focus();
@@ -343,8 +333,9 @@ $('boardForm').addEventListener('submit', event => {
   if (!member || !content) return;
   const parent = replyTo;
   run(form.querySelector('button[type=submit]'), async () => {
-    await api.addMessage(content, parent);
-    form.reset();
+    const signature = form.elements.signature.value.trim();
+    await api.addMessage(content, parent, signature);
+    form.elements.content.value = '';
     resetReply();
     toast('留言已发布。');
     await sync({ again: true });
