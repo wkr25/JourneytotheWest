@@ -42,6 +42,26 @@ details label { display: block; margin-top: 8px; }
   .main-nav a:nth-child(n) { display: block; flex: none; }
   .toolbar { margin-left: auto; }
 }
+.hero-copy {
+  min-width: 0;
+  container-type: inline-size;
+}
+.hero-copy h1 {
+  font-size: min(clamp(64px, 10vw, 145px), 23cqi);
+  white-space: nowrap;
+}
+.hero-period {
+  font-size: 0.55em;
+  letter-spacing: 0;
+}
+.line-card {
+  display: flex;
+  flex-direction: column;
+}
+.line-tag {
+  position: static;
+  margin-top: auto;
+}
 .hero-orbit {
   position: relative;
   justify-self: center;
@@ -109,6 +129,7 @@ details label { display: block; margin-top: 8px; }
 .orbit-badge-it { --badge-x: 17.2%; --badge-y: 72.9%; }
 .orbit-badge-es { --badge-x: 82.8%; --badge-y: 72.9%; }
 @media (max-width: 700px) {
+  .hero-copy h1 { font-size: min(78px, 23cqi); }
   .hero-orbit { width: min(100%, 340px); }
 }
 @media (max-width: 400px) {
