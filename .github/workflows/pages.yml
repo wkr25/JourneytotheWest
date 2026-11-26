@@ -27,7 +27,7 @@ jobs:
         run: |
           mkdir site
           cp index.html styles.css app.js workspace-api.js workspace-config.js site/
-          cp -r flags site/
+          cp -r flags maps site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

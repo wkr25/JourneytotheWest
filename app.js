@@ -24,7 +24,11 @@ const outputs = {
 const names = { route: '行程', point: '点位', task: '任务', output: '成果' };
 const field = (key, label, type = 'text', options) => ({ key, label, type, options });
 const forms = {
-  route: [field('date', '日期'), field('location', '城市 / 地区'), field('activity', '拟开展活动'), field('group', '负责小组'), field('status', '确认状态', 'select', ['待确定', '联系中', '已确定']), field('next', '下一步')],
+  route: [
+    field('date', '日期'), field('origin', '出发地（英文）'), field('location', '目的地（英文）'),
+    field('transport', '交通方式'), field('departure', '出发时间（当地时间）'),
+    field('arrival', '抵达时间（当地时间）'), field('duration', '预计耗时'),
+  ],
   point: [field('name', '点位名称'), field('location', '地点'), field('direction', '对应研究方向'), field('description', '详细介绍', 'textarea'), field('contact', '联系方式'), field('outreach', '当前外联进展', 'textarea'), field('confirmed', '外联完毕并确认', 'checkbox')],
   task: [field('task', '当前任务', 'textarea'), field('status', '完成进度', 'select', progress)],
   output: [field('name', '成果名称'), field('location', '点位 / 展示地点'), field('description', '主要内容', 'textarea'), field('group', '负责小组及负责人'), field('status', '推进状态', 'select', ['未开始', '资料收集', '制作中', '待交接', '已完成']), field('date', '计划完成时间'), field('handoff', '交接或合作对象'), field('handoffDate', '交接时间'), field('link', '文件位置或发布链接'), field('implementation', '实施 / 发布情况', 'textarea'), field('followup', '回访或反馈记录（时间、对象、成效）', 'textarea')],
@@ -77,16 +81,45 @@ function editButton(record, label = '编辑') {
   return '<button class="text-button" type="button" data-edit="' + esc(record.id) + '">' + esc(label) + '</button>';
 }
 
+const routeStops = [...document.querySelectorAll('#route tbody[data-public-preview] tr')].map(row => ({
+  location: row.querySelector('th').textContent,
+  origin: row.querySelector('[data-origin]')?.textContent ?? '',
+}));
+
+function routeDetails(payload) {
+  const hasDetails = ['date', 'origin', 'transport', 'departure', 'arrival', 'duration', 'activity', 'group', 'next']
+    .some(key => payload[key] && !['待定', '待确定', '待补充'].includes(payload[key]));
+  const formerNames = {
+    '米兰': 'Milan', '罗马': 'Rome', '泰尔莫利': 'Termoli', '加泰罗尼亚': 'Catalonia', '加泰罗尼亚大区': 'Catalonia',
+    '意大利另一座城市': hasDetails ? 'Italy (city TBD)' : 'Rome',
+    '巴塞罗那': hasDetails ? 'Barcelona' : 'Catalonia',
+  };
+  const location = Object.hasOwn(formerNames, payload.location) ? formerNames[payload.location] : payload.location;
+  const stop = routeStops.find(stop => stop.location === location);
+  return { ...payload, location, origin: payload.origin || stop?.origin || '' };
+}
+
+function renderSchedule(records) {
+  const items = records.map(record => ({ record, details: routeDetails(record.payload) }));
+  const knownStops = new Set(items.map(({ details }) => details.location));
+  items.push(...routeStops.filter(stop => !knownStops.has(stop.location)).map(details => ({ details })));
+  const stopOrder = new Map(routeStops.map((stop, index) => [stop.location, index]));
+  items.sort((a, b) => (stopOrder.get(a.details.location) ?? routeStops.length) -
+    (stopOrder.get(b.details.location) ?? routeStops.length));
+  $('scheduleRows').innerHTML = items.map(({ record, details: p }) => {
+    const operation = record ? editButton(record) :
+      '<button class="text-button" type="button" data-route-stop="' + esc(p.location) + '">编辑</button>';
+    const td = value => '<td>' + esc(value || '待确定') + '</td>';
+    const times = p.departure || p.arrival ? (p.departure || '待确定') + ' / ' + (p.arrival || '待确定') : '';
+    return '<tr>' + td(p.date) + td(p.origin) + '<th scope="row" lang="en">' + esc(p.location) + '</th>' +
+      td(p.transport) + td(times) + td(p.duration) + '<td>' + operation + '</td></tr>';
+  }).join('');
+}
+
 function render() {
   const expanded = new Set([...document.querySelectorAll('details[data-panel][open]')].map(el => el.dataset.panel));
   const ofKind = kind => workspace.records.filter(record => record.kind === kind);
-  $('scheduleRows').innerHTML = ofKind('route').sort((a, b) =>
-    (a.payload.order ?? Infinity) - (b.payload.order ?? Infinity)
-  ).map(record => {
-    const p = record.payload;
-    return '<tr>' + [p.date, p.location, p.activity, p.group, p.status].map(value => '<td>' + esc(value || '待确定') + '</td>').join('') +
-      '<td>' + esc(p.next || '待补充') + '<br>' + editButton(record) + '</td></tr>';
-  }).join('');
+  renderSchedule(ofKind('route'));
   $('pointGrid').innerHTML = ofKind('point').map(record => {
     const p = record.payload;
     return '<article class="point-card"><div class="point-top"><h3>' + esc(p.name) + '</h3><span class="status">' +
@@ -190,14 +223,15 @@ function renderField(f, value, required = false) {
   return '<label' + (f.type === 'checkbox' ? ' class="checkbox-field">' + input + esc(f.label) : '>' + esc(f.label) + input) + '</label>';
 }
 
-function openEditor(kind, record, category) {
+function openEditor(kind, record, category, defaults) {
   edit = { kind, record, category };
+  const values = kind === 'route' ? routeDetails(record?.payload ?? defaults ?? {}) : record?.payload;
   const signingIn = kind === 'login';
   $('dialogTitle').textContent = signingIn ? '输入访问码'
     : (record ? '更新' : '新增') + names[kind];
   $('dialogSubmit').textContent = signingIn ? '进入协作' : '保存';
   const fields = signingIn ? [field('code', '支队访问码', 'password')] : forms[kind];
-  $('dialogFields').innerHTML = fields.map(f => renderField(f, record?.payload[f.key], signingIn || f.key === 'name' ||
+  $('dialogFields').innerHTML = fields.map(f => renderField(f, values?.[f.key], signingIn || f.key === 'name' ||
     (kind === 'route' && f.key === 'location'))).join('');
   $('dialogError').textContent = '';
   dialog.showModal();
@@ -270,6 +304,9 @@ document.addEventListener('click', event => {
   if (!member || !target) return;
   const { add, edit: id, file, reply } = target.dataset;
   if (add) openEditor(add, undefined, target.dataset.category);
+  if (target.dataset.routeStop) {
+    openEditor('route', undefined, undefined, routeStops.find(stop => stop.location === target.dataset.routeStop));
+  }
   if (id) {
     const record = workspace.records.find(r => r.id === id);
     if (record) openEditor(record.kind, record);

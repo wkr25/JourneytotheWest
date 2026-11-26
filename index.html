@@ -6,7 +6,7 @@
   <meta name="description" content="清华大学自动化系2027年寒假实践支队“有点意西”工作手册">
   <meta name="robots" content="noindex">
   <title>有点意西｜支队工作手册</title>
-  <link rel="stylesheet" href="styles.css?v=hero-copy">
+  <link rel="stylesheet" href="styles.css?v=route-schedule">
 </head>
 <body>
   <div class="site-shell">
@@ -16,7 +16,7 @@
         <span><strong>有点意西</strong><small>清华大学自动化系 · 2027 寒假实践</small></span>
       </a>
       <nav class="main-nav" aria-label="章节导航">
-        <a href="#overview">速览</a><a href="#theme">主题</a><a href="#route">路线</a>
+        <a href="#overview">速览</a><a href="#theme">主题</a><a href="#route">日程</a>
         <a href="#points">点位</a><a href="#team">队伍</a><a href="#outputs">成果</a>
         <a href="#sources">资料</a><a href="#board" id="boardNav" hidden>留言</a>
       </nav>
@@ -54,7 +54,7 @@
         <div class="snapshot-cards">
           <article class="snapshot"><span class="label">实践主题</span><strong>乡村振兴</strong><p>意大利与西班牙乡村发展实践调研与交流</p></article>
           <article class="snapshot"><span class="label">时间</span><strong>2027.01.17—01.29</strong><p>暂定，具体出发与返程安排待定</p></article>
-          <article class="snapshot"><span class="label">目的地</span><strong>意大利 · 西班牙</strong><p>意大利米兰及另一座待定城市，西班牙巴塞罗那</p></article>
+          <article class="snapshot"><span class="label">目的地</span><strong>Italy · Spain</strong><p>Milan、Rome、Termoli 和 Catalonia</p></article>
           <article class="snapshot"><span class="label">队伍</span><strong>15 人</strong><p>教师、辅导员、支队长与学生成员</p></article>
         </div>
       </section>
@@ -72,13 +72,48 @@
       </section>
 
       <section class="section" id="route">
-        <div class="section-heading"><span class="chapter">03</span><div><p class="eyebrow">ROUTE & SCHEDULE</p><h2>路线与安排</h2></div></div>
-        <div class="route-track"><div class="route-stop active"><span class="route-dot"></span><div><b>中国</b><small>出发 · 日期暂定</small></div></div><div class="route-line"></div><div class="route-stop active"><span class="route-dot"></span><div><b>米兰</b><small>意大利 · 必去</small></div></div><div class="route-line dashed"></div><div class="route-stop pending"><span class="route-dot"></span><div><b>意大利另一座城市</b><small>待确定</small></div></div><div class="route-line"></div><div class="route-stop active"><span class="route-dot"></span><div><b>巴塞罗那</b><small>西班牙 · 必去</small></div></div></div>
-        <p class="route-summary">意大利段约 7 天，先赴米兰及另一座待定城市，再前往西班牙巴塞罗那。具体日期、城市活动与点位根据外联进展更新。</p>
-        <div data-members-only hidden>
-          <div class="table-wrap"><table class="editable-table"><thead><tr><th>日期</th><th>城市 / 地区</th><th>拟开展活动</th><th>负责小组</th><th>确认状态</th><th>下一步</th></tr></thead><tbody id="scheduleRows"></tbody></table></div>
-          <button class="button primary chapter-action" type="button" data-add="route">新增行程</button>
+        <div class="section-heading"><span class="chapter">03</span><div><p class="eyebrow">ROUTE & SCHEDULE</p><h2>路线与日程</h2></div></div>
+        <div class="route-maps">
+          <figure class="route-map">
+            <figcaption><img src="flags/it.png" alt=""><span lang="en">Italy</span></figcaption>
+            <div class="route-map-plot">
+              <img class="route-map-base" src="maps/italy.png" width="520" height="330" alt="">
+              <ul class="route-map-labels" lang="en">
+                <li class="map-marker map-milan"><span>Milan</span></li>
+                <li class="map-marker map-rome"><span>Rome</span></li>
+                <li class="map-marker map-termoli"><span>Termoli</span></li>
+              </ul>
+            </div>
+          </figure>
+          <figure class="route-map">
+            <figcaption><img src="flags/es.png" alt=""><span lang="en">Spain</span></figcaption>
+            <div class="route-map-plot">
+              <img class="route-map-base" src="maps/spain.png" width="520" height="330" alt="">
+              <ul class="route-map-labels" lang="en">
+                <li class="map-marker map-catalonia"><span>Catalonia</span></li>
+              </ul>
+              <span class="route-map-inset" lang="en">Canary Islands</span>
+            </div>
+          </figure>
         </div>
+        <p class="route-map-credit">地图底图：<a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a></p>
+        <div class="schedule-heading">
+          <h3>日程表</h3>
+          <p>总行程暂定 2027 年 1 月 17–29 日，先到 <span lang="en">Italy</span>，再到 <span lang="en">Spain</span>。各段日期、城市间先后顺序及班次待确定。</p>
+        </div>
+        <div class="table-wrap schedule-wrap" tabindex="0" role="region" aria-label="日程表">
+          <table class="schedule-table">
+            <thead><tr><th scope="col">日期</th><th scope="col">出发地</th><th scope="col">目的地</th><th scope="col">交通方式</th><th scope="col">出发 / 抵达（当地时间）</th><th scope="col">预计耗时</th><th scope="col" data-members-only hidden>队内操作</th></tr></thead>
+            <tbody data-public-preview>
+              <tr><td>待确定</td><td>待确定</td><th scope="row" lang="en">Milan</th><td>待确定</td><td>待确定</td><td>待确定</td></tr>
+              <tr><td>待确定</td><td>待确定</td><th scope="row" lang="en">Rome</th><td>待确定</td><td>待确定</td><td>待确定</td></tr>
+              <tr><td>待确定</td><td>待确定</td><th scope="row" lang="en">Termoli</th><td>待确定</td><td>待确定</td><td>待确定</td></tr>
+              <tr><td>待确定</td><td data-origin lang="en">Italy</td><th scope="row" lang="en">Catalonia</th><td>待确定</td><td>待确定</td><td>待确定</td></tr>
+            </tbody>
+            <tbody id="scheduleRows" data-members-only hidden></tbody>
+          </table>
+        </div>
+        <button class="button primary chapter-action" type="button" data-add="route" data-members-only hidden>新增行程</button>
       </section>
 
       <section class="section" id="points">
@@ -150,6 +185,6 @@
   </dialog>
   <div class="toast" id="toast" role="status"></div>
   <script src="workspace-config.js"></script>
-  <script type="module" src="app.js?v=access-code"></script>
+  <script type="module" src="app.js?v=route-schedule"></script>
 </body>
 </html>
